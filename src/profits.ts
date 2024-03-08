@@ -5,8 +5,6 @@ import type { Exchange } from "./exchange";
 
 export const makeProfits = (exchange: Exchange) => {
   const getProfits = async (transactions: Transaction[]) => {
-    console.table(transactions);
-
     let dividendsPlnTotal = currency(0);
     const dividends = transactions.filter((row) => row.Type === TransactionType.DIVIDEND);
     for (const record of dividends) {
@@ -62,13 +60,13 @@ export const makeProfits = (exchange: Exchange) => {
         }
 
         stocksPlnTotal = stocksPlnTotal.add(tickerPlnTotal);
-        console.log(`# pln stock ${sell.Ticker} profit: ${tickerPlnTotal.value}`);
       }
     }
 
-    console.log("\n");
-    console.log("# pln dividents total: \t" + dividendsPlnTotal.value);
-    console.log("# pln stocks total: \t" + stocksPlnTotal.value);
+    return {
+      dividends: dividendsPlnTotal.value,
+      stock: stocksPlnTotal.value,
+    };
   };
 
   return { getProfits };

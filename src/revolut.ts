@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import { parse } from "csv-parse/sync";
-import { args } from "./args";
 
 type RawTransaction = {
   Type: TransactionType;
@@ -55,13 +54,14 @@ export type SellTransaction = TransactionCommon & {
 
 export type DividendTransaction = TransactionCommon & {
   Type: TransactionType.DIVIDEND;
+  Ticker: string;
 };
 
 export type Transaction = TopUpTransaction | FeeTransaction | BuyTransaction | SellTransaction | DividendTransaction;
 
 export const makeRevolut = () => {
-  const getTransactions = () => {
-    const file = fs.readFileSync(args.file, "utf-8");
+  const getTransactions = (path: string) => {
+    const file = fs.readFileSync(path, "utf-8");
 
     const records = parse(file, {
       columns: true,

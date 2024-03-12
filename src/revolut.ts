@@ -1,17 +1,23 @@
 import fs from "node:fs";
 import { parse } from "csv-parse/sync";
+import * as t from "runtypes";
 
-type RawTransaction = {
-  Type: TransactionType;
-  Date: string;
-  "Total Amount": string;
-  Currency: Currency;
-  "FX Rate": string;
-
-  Ticker?: string;
-  Quantity?: string;
-  "Price per share"?: string;
-};
+const rawTransaction = t.Record({
+  Type: t.Union(
+    t.Literal("CASH TOP-UP"),
+    t.Literal("CUSTODY FEE"),
+    t.Literal("BUY - MARKET"),
+    t.Literal("SELL - MARKET"),
+    t.Literal("DIVIDEND"),
+  ),
+  Date: t.String,
+  "Total Amount": t.String,
+  Currency: t.Union(t.Literal("USD"), t.Literal("EUR")),
+  "FX Rate": t.String,
+  Ticker: t.String,
+  Quantity: t.String,
+  "Price per share": t.String,
+});
 
 export enum TransactionType {
   CASH_TOP_UP = "CASH TOP-UP",
@@ -63,17 +69,19 @@ export const makeRevolut = () => {
   const getTransactions = (path: string) => {
     const file = fs.readFileSync(path, "utf-8");
 
-    const records = parse(file, {
+    const rawRows = parse(file, {
       columns: true,
       skip_empty_lines: true,
-    }) as RawTransaction[];
+    }) as any[];
 
-    return records.map((record) => {
-      return {
-        ...record,
-        Quantity: record.Quantity ? Number(record.Quantity) : record.Quantity,
-      };
-    }) as Transaction[];
+    return rawRows
+      .map((row) => rawTransaction.check(row))
+      .map((row) => {
+        return {
+          ...row,
+          Quantity: row.Quantity ? Number(row.Quantity) : row.Quantity,
+        };
+      }) as Transaction[];
   };
 
   return {

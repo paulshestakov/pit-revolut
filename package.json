@@ -11,6 +11,8 @@
     "date-fns": "3.3.1",
     "date-holidays": "3.23.9",
     "lodash": "4.17.21",
+    "runtypes": "^6.7.0",
+    "winston": "^3.12.0",
     "yargs": "17.7.2"
   },
   "devDependencies": {

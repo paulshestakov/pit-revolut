@@ -1,6 +1,6 @@
 import { expect, test, describe } from "bun:test";
 import type { Exchange, ExchangeCurrency } from "./exchange";
-import { makeProfits } from "./profits";
+import { makeProfitsStocks } from "./profits-stocks";
 import { range } from "./array";
 import { TransactionType, type DividendTransaction, type SellTransaction, type BuyTransaction } from "./revolut";
 
@@ -10,22 +10,9 @@ const mockExchange: Exchange = {
   },
 };
 
-describe("profits", () => {
-  test("dividents", async () => {
-    const profits = makeProfits(mockExchange);
-    const transactions: DividendTransaction[] = range(10).map(() => ({
-      Type: TransactionType.DIVIDEND,
-      Date: "2023-08-18T18:59:07.984691Z",
-      Ticker: "AAPL",
-      "Total Amount": "$2.04",
-      Currency: "USD",
-      "FX Rate": "0.2445",
-    }));
-    expect(await profits.getProfits(transactions)).toEqual({ dividends: 20.4, stock: 0 });
-  });
-
+describe("profits-stocks", () => {
   test("stocks positive", async () => {
-    const profits = makeProfits(mockExchange);
+    const profits = makeProfitsStocks(mockExchange);
     const transactions: (SellTransaction | BuyTransaction)[] = [
       {
         Type: TransactionType.BUY_MARKET,
@@ -48,11 +35,18 @@ describe("profits", () => {
         "FX Rate": "0.2419",
       },
     ];
-    expect(await profits.getProfits(transactions)).toEqual({ dividends: 0, stock: 21.25 });
+    expect(await profits.getProfits(transactions)).toEqual([
+      {
+        currency: "PLN",
+        sells: "AMZN 21.25",
+        total: 21.25,
+        year: 2023,
+      },
+    ]);
   });
 
   test("stocks negative", async () => {
-    const profits = makeProfits(mockExchange);
+    const profits = makeProfitsStocks(mockExchange);
     const transactions: (SellTransaction | BuyTransaction)[] = [
       {
         Type: TransactionType.SELL_MARKET,
@@ -75,6 +69,13 @@ describe("profits", () => {
         "FX Rate": "0.2419",
       },
     ];
-    expect(await profits.getProfits(transactions)).toEqual({ dividends: 0, stock: -21.25 });
+    expect(await profits.getProfits(transactions)).toEqual([
+      {
+        currency: "PLN",
+        sells: "AMZN -21.25",
+        total: -21.25,
+        year: 2023,
+      },
+    ]);
   });
 });

@@ -1,6 +1,5 @@
 import { expect, test, describe } from "bun:test";
 import type { Exchange, ExchangeCurrency } from "./exchange";
-import { makeProfits } from "./profits-stocks";
 import { range } from "./array";
 import { TransactionType, type DividendTransaction, type SellTransaction, type BuyTransaction } from "./revolut";
 import { makeProfitsDividends } from "./profits-dividends";

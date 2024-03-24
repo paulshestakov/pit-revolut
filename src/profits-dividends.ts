@@ -30,3 +30,5 @@ export const makeProfitsDividends = (exchange: Exchange) => {
 
   return { getProfits };
 };
+
+export type ProfitsDividends = ReturnType<typeof makeProfitsDividends>;

@@ -102,3 +102,5 @@ export const makeProfitsStocks = (exchange: Exchange) => {
 
   return { getProfits };
 };
+
+export type ProfitsStocks = ReturnType<typeof makeProfitsStocks>;

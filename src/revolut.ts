@@ -66,9 +66,7 @@ export type DividendTransaction = TransactionCommon & {
 export type Transaction = TopUpTransaction | FeeTransaction | BuyTransaction | SellTransaction | DividendTransaction;
 
 export const makeRevolut = () => {
-  const getTransactions = (path: string) => {
-    const file = fs.readFileSync(path, "utf-8");
-
+  const getTransactions = (file: Buffer) => {
     const rawRows = parse(file, {
       columns: true,
       skip_empty_lines: true,
@@ -88,3 +86,5 @@ export const makeRevolut = () => {
     getTransactions,
   };
 };
+
+export type Revolut = ReturnType<typeof makeRevolut>;

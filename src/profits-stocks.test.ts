@@ -37,9 +37,17 @@ describe("profits-stocks", () => {
     ];
     expect(await profits.getProfits(transactions)).toEqual([
       {
+        cost: 4347.44,
+        profit: 4368.69,
         currency: "PLN",
-        sells: "AMZN 21.25",
-        total: 21.25,
+        sells: [
+          {
+            cost: 4347.44,
+            date: new Date("2023-11-08T17:57:50.047Z"),
+            profit: 4368.69,
+            ticker: "AMZN",
+          },
+        ],
         year: 2023,
       },
     ]);
@@ -71,9 +79,17 @@ describe("profits-stocks", () => {
     ];
     expect(await profits.getProfits(transactions)).toEqual([
       {
+        cost: 4368.69,
+        profit: 4347.44,
         currency: "PLN",
-        sells: "AMZN -21.25",
-        total: -21.25,
+        sells: [
+          {
+            cost: 4368.69,
+            date: new Date("2023-09-18T17:40:15.268Z"),
+            profit: 4347.44,
+            ticker: "AMZN",
+          },
+        ],
         year: 2023,
       },
     ]);

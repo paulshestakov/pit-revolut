@@ -5,8 +5,9 @@ import { makeCalendar } from "./calendar";
 import { makeRevolut } from "./revolut";
 import { makeProfitsDividends } from "./profits-dividends";
 import { makeProfitsStocks } from "./profits-stocks";
+import { stringify } from "./utils/stringify";
 
-const logger = makeLogger();
+const logger = makeLogger({ level: args["log-level"] });
 const calendar = makeCalendar();
 const exchange = makeExchange(calendar, logger);
 const revolut = makeRevolut();
@@ -15,8 +16,8 @@ const profitsStocks = makeProfitsStocks(exchange);
 
 const transactions = revolut.getTransactions(args.file);
 
-console.log("Dividends");
-console.table(await profitsDividends.getProfits(transactions));
+logger.info("Dividends");
+logger.info(stringify(await profitsDividends.getProfits(transactions)));
 
-console.log("Stocks");
-console.table(await profitsStocks.getProfits(transactions));
+logger.info("Stocks");
+logger.info(stringify(await profitsStocks.getProfits(transactions)));

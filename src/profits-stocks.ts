@@ -3,32 +3,43 @@ import currency from "currency.js";
 import _ from "lodash";
 import type { Exchange } from "./exchange";
 
+type YearResult = {
+  year: number;
+  profit: currency;
+  cost: currency;
+  currency: string;
+  sells: {
+    ticker: string;
+    date: Date;
+    profit: number;
+    cost: number;
+  }[];
+};
+
+type Result = Record<string, YearResult>;
+
 export const makeProfitsStocks = (exchange: Exchange) => {
   const getProfits = async (transactions: Transaction[]) => {
-    type YearResult = {
-      year: number;
-      total: currency;
-      currency: string;
-      sells: { ticker: string; date: Date; profit: number }[];
+    const isStock = (transaction: Transaction): transaction is BuyTransaction | SellTransaction => {
+      return transaction.Type === TransactionType.BUY_MARKET || transaction.Type === TransactionType.SELL_MARKET;
     };
 
-    const resultsByYear: Record<string, YearResult> = {};
+    const stockTransactions = transactions.filter(isStock);
 
-    const stocks = transactions.filter(
-      (row) => row.Type === TransactionType.BUY_MARKET || row.Type === TransactionType.SELL_MARKET,
-    ) as (BuyTransaction | SellTransaction)[];
+    const transactionsByTicker = _.groupBy(stockTransactions, (transaction) => transaction.Ticker);
 
-    const stocksByTicker = _.groupBy(stocks, (transaction) => transaction.Ticker);
+    const result: Result = {};
 
-    for (const [ticker, tickerStocks] of Object.entries(stocksByTicker)) {
+    for (const [ticker, tickerStocks] of Object.entries(transactionsByTicker)) {
       let buys = tickerStocks.filter((t) => t.Type === TransactionType.BUY_MARKET);
       const sells = tickerStocks.filter((t) => t.Type === TransactionType.SELL_MARKET);
 
       for (const sell of sells) {
-        let sellProfit = currency(0);
-
         const rate = await exchange.getRate("USD", new Date(sell.Date));
-        sellProfit = sellProfit.add(currency(sell["Total Amount"]).multiply(rate));
+        const sellProfit = currency(sell["Total Amount"]).multiply(rate);
+
+        let sellCost = currency(0);
+
         const amount = sell.Quantity;
         let took = 0;
         while (took !== amount) {
@@ -52,35 +63,40 @@ export const makeProfitsStocks = (exchange: Exchange) => {
           took += tookFromHead;
 
           const rate = await exchange.getRate("USD", new Date(head.Date));
-          sellProfit = sellProfit.subtract(
+          sellCost = sellCost.add(
             currency(head["Total Amount"])
               .multiply(tookFromHead / head.Quantity)
               .multiply(rate),
           );
         }
         const year = new Date(sell.Date).getFullYear();
-        if (!resultsByYear[year]) {
-          resultsByYear[year] = {
+        if (!result[year]) {
+          result[year] = {
             year,
-            total: currency(0),
+            profit: currency(0),
+            cost: currency(0),
             currency: "PLN",
             sells: [],
           };
         }
 
-        resultsByYear[year].total = resultsByYear[year].total.add(sellProfit);
-        resultsByYear[year].sells.push({
+        result[year].profit = result[year].profit.add(sellProfit);
+        result[year].cost = result[year].cost.add(sellCost);
+
+        result[year].sells.push({
           date: new Date(sell.Date),
           ticker: sell.Ticker,
           profit: sellProfit.value,
+          cost: sellCost.value,
         });
       }
     }
 
-    return Object.values(resultsByYear).map((result) => ({
+    return Object.values(result).map((result) => ({
       ...result,
-      total: result.total.value,
-      sells: result.sells.map((sell) => `${sell.ticker} ${sell.profit}`).join(", "),
+      profit: result.profit.value,
+      cost: result.cost.value,
+      sells: result.sells,
     }));
   };
 

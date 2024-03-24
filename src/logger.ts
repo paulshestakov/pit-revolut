@@ -1,9 +1,13 @@
 const winston = require("winston");
 
-export const makeLogger = () => {
+type Config = {
+  level: string;
+};
+
+export const makeLogger = ({ level }: Config) => {
   return winston.createLogger({
-    level: "debug",
-    format: winston.format.combine(winston.format.colorize(), winston.format.timestamp(), winston.format.prettyPrint()),
+    level,
+    format: winston.format.combine(winston.format.colorize(), winston.format.prettyPrint()),
     transports: [new winston.transports.Console({ format: winston.format.simple() })],
   });
 };

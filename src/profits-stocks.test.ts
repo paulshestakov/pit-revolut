@@ -1,8 +1,7 @@
 import { expect, test, describe } from "bun:test";
 import type { Exchange, ExchangeCurrency } from "./exchange";
 import { makeProfitsStocks } from "./profits-stocks";
-import { range } from "./array";
-import { TransactionType, type DividendTransaction, type SellTransaction, type BuyTransaction } from "./revolut";
+import { TransactionType, type SellTransaction, type BuyTransaction } from "./revolut";
 
 const mockExchange: Exchange = {
   getRate: async (currency: ExchangeCurrency, date: Date) => {

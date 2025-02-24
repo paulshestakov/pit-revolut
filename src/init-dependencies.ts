@@ -10,7 +10,7 @@ export const initDependencies = () => {
   const logger = makeLogger({ level: args["log-level"] });
   const calendar = makeCalendar();
   const exchange = makeExchange(calendar, logger);
-  const revolut = makeRevolut();
+  const revolut = makeRevolut({ logger });
   const profitsDividends = makeProfitsDividends(exchange);
   const profitsStocks = makeProfitsStocks(exchange);
 

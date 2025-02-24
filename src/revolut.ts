@@ -1,10 +1,11 @@
-import fs from "node:fs";
 import { parse } from "csv-parse/sync";
 import * as t from "runtypes";
+import type { Logger } from "./logger";
 
 const rawTransaction = t.Record({
   Type: t.Union(
     t.Literal("CASH TOP-UP"),
+    t.Literal("CASH WITHDRAWAL"),
     t.Literal("CUSTODY FEE"),
     t.Literal("BUY - MARKET"),
     t.Literal("SELL - MARKET"),
@@ -21,6 +22,7 @@ const rawTransaction = t.Record({
 
 export enum TransactionType {
   CASH_TOP_UP = "CASH TOP-UP",
+  CASH_WITHDRAWAL = "CASH WITHDRAWAL",
   CUSTODY_FEE = "CUSTODY FEE",
   BUY_MARKET = "BUY - MARKET",
   SELL_MARKET = "SELL - MARKET",
@@ -65,7 +67,7 @@ export type DividendTransaction = TransactionCommon & {
 
 export type Transaction = TopUpTransaction | FeeTransaction | BuyTransaction | SellTransaction | DividendTransaction;
 
-export const makeRevolut = () => {
+export const makeRevolut = ({ logger }: { logger: Logger }) => {
   const getTransactions = (file: Buffer) => {
     const rawRows = parse(file, {
       columns: true,
@@ -73,7 +75,14 @@ export const makeRevolut = () => {
     }) as any[];
 
     return rawRows
-      .map((row) => rawTransaction.check(row))
+      .map((row) => {
+        try {
+          return rawTransaction.check(row);
+        } catch (error) {
+          logger.error(`Failed to validate row ${JSON.stringify(row)}`);
+          throw error;
+        }
+      })
       .map((row) => {
         return {
           ...row,

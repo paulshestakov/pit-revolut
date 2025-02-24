@@ -3,7 +3,8 @@
   "module": "./src/index.ts",
   "type": "module",
   "scripts": {
-    "start": "bun run ./src/index.ts"
+    "server": "bun run ./src/server-start.ts",
+    "cli": "bun run ./src/cli.ts"
   },
   "dependencies": {
     "csv-parse": "5.5.5",
